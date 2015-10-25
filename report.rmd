@@ -1,0 +1,96 @@
+---
+output: pdf_document
+---
+#Summary
+In the following sections we'll explain why we think that the difference between the manual and automatic transmission is statically significant. But also, we'll see that the weight has a dramatic importance when choosing a car's transmission regarding mpg.
+
+As a side note, if we had only looked at mean within group we would have always preferred manual cars to automatic, but this is influenced by the fact that the dataset has a few number of lighter cars and all are automatic!
+
+#Data manipulation
+In the original dataset, the feature 'am' was defined with 0 for automatic and 1 for manual transmissions. In this report the numbers were substituted by the labels.
+```{r,echo=TRUE,eval=FALSE}
+mtcars$am<-gsub(0,"automatic",mtcars$am)
+mtcars$am<-gsub(1,"manual",mtcars$am)
+```
+To make the analysis easyer, the original dataset will be splited according the transmission. So now we have the automatic and manual datasets.
+
+```{r,echo=TRUE,eval=FALSE}
+automatic<- split(mtcars,mtcars$am)[[1]]
+manual<- split(mtcars,mtcars$am)[[2]]
+```
+#Descriptive analysis
+Lets check the descriptive analysis about each dataset.
+
+```{r,echo=TRUE,eval=FALSE}
+automaticSum<-summary(automatic)
+manualSum<-summary(manual)
+```
+###Boxplot
+
+The focus of this report is the diference of Miles per Gallon in a automatic and manual cars, the correspondent boxplot is here:
+
+```{r,echo=TRUE,eval=FALSE}
+b5<-boxplot(mpg ~ am, data = mtcars, col = "blue", ylab = "miles per gallon")
+```
+#Inference
+
+Now, we will test if the manual and automatic cars have the same Miles per Gallon value. In Ho the diference is 0 (assuming normality and independence).
+
+```{r,echo=TRUE,eval=FALSE}
+Test<-t.test(mpg~am,data=mtcars)
+```
+T test p-value
+```{r,echo=TRUE,eval=FALSE}
+pvalue<-Test$p.value
+```
+Mean in each group
+```{r,echo=TRUE,eval=FALSE}
+means<-Test$estimate
+```
+So, we will reject the Ho, automatic and manual cars have not the same MPG values.
+
+# Regression
+
+```{r,echo=TRUE,results="hide"}
+full.model <- lm(mpg ~ ., data = mtcars)
+best.model <- step(full.model, direction = "backward")
+model_sum<-summary(best.model)
+```
+This procedure determines that the best model includes the cyl6, cyl8, hp, wt, and amManual variables (overall p-value<0.001). The adjusted R-squared indicates that about 84% of the variance is explained by the final model. Moreover, the output of this model suggests that mpg decreases with respect to cylinders (-3.03 and -2.16 for cyl6 and cyl8, respectively), horsepower (-0.03), and weight (for every 1,000lb, by -2.5). On the other hand, mpg increases with respect to having a manual transmission (by 1.8). Residual plots (see appendix) suggest that some transformation may be necessary to achieve linearity.
+
+### Residuals
+```{r,echo=TRUE}
+par(mfrow=c(2, 2))
+res_plot<-plot(best.model)
+```
+#Conclusion
+
+According to these results, cars with a manual transmission are better for mpg than cars with an automatic transmission. The rate of change of the conditional mean mpg with respect to am is about 1.8, and we are 95% confident that this value varies between -1.06 and 4.68. 
+
+#APPENDIX
+###Boxplots
+The focus of this report is the diference of Miles per Gallon in a automatic and manual cars, the correspondent boxplot is here:
+```{r,echo=FALSE}
+boxplot(mpg ~ am, data = mtcars, col = "blue", ylab = "miles per gallon")
+```
+#Inference
+```{r}
+Test<-t.test(mpg~am,data=mtcars)
+```
+T test p-value
+```{r}
+Test$p.value
+```
+Mean in each group
+```{r}
+Test$estimate
+```
+# Regression
+```{r}
+summary(best.model)
+```
+### Residuals
+```{r}
+par(mfrow=c(2, 2))
+plot(best.model)
+```
